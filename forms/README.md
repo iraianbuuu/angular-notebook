@@ -118,11 +118,11 @@ export class App {
 
 1. The user types a value into the input element.
 2. The input element emits an "input" event.
-3.The control value accessor attached to the input triggers the `setValue()` method on the FormControl instance.
-4.The `FormControl` instance emits the new value through the `valueChanges` observable.
-5.Any subscribers to the `valueChanges` observable receive the new value.
-6.The control value accessor also calls the `NgModel.viewToModelUpdate()` method which emits an `ngModelChange` event.
-7.Because the component template uses two-way data binding, the property in the component is updated to the value emitted by the `ngModelChange event`.
+   3.The control value accessor attached to the input triggers the `setValue()` method on the FormControl instance.
+   4.The `FormControl` instance emits the new value through the `valueChanges` observable.
+   5.Any subscribers to the `valueChanges` observable receive the new value.
+   6.The control value accessor also calls the `NgModel.viewToModelUpdate()` method which emits an `ngModelChange` event.
+   7.Because the component template uses two-way data binding, the property in the component is updated to the value emitted by the `ngModelChange event`.
 
 **Model to View** :
 
@@ -141,3 +141,41 @@ export class App {
 Each change generates a new `FormControl` instance value, allowing us to track these unique changes. It's easier to manage change tracking and integrates with RxJS (Observables).
 
 **Template-Driven Forms** : The data model is mutable, meaning that the existing data model is modified each time. Angular's two-way data binding updates the data model immediately as changes occur in the template.
+
+## Form group
+
+Forms typically contain several related controls. Reactive forms provide two types of grouping multiple related controls into a single input form.
+
+**Form Group** : Defines a form with a fixed set of controls that you can manage together.
+
+**Form Array** : Defines a dynamic form, where you can add and reove controls at run time. We can also nest form arrays to create more complex forms.
+
+Just as a form control instance gives you control over a single input field, a form group instance tracks the form state of a group of form control instances (for example, a form). Each control in a form group instance is tracked by name when creating the form group.
+
+### Example
+
+```html
+<h3>Formgroup</h3>
+
+<form [formGroup]="profileEditor" (ngSubmit)="onSubmit()">
+  <label for="firstName">First Name: </label>
+  <input type="text" name="" id="firstName" formControlName="firstName" />
+  <br />
+  <br />
+  <label for="lastName">Last Name: </label>
+  <input type="text" name="" id="lastName" formControlName="lastName" />
+  <br />
+  <br />
+  <button type="submit">Submit</button>
+</form>
+```
+
+```ts
+@Component({...})
+export class AppComponent {
+  profileForm = new FormGroup({
+    firstName: new FormControl(""),
+    lastName: new FormControl(""),
+  });
+}
+```
