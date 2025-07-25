@@ -1,14 +1,38 @@
 # Signals
 
-Signals in Angular are a way to manage state and reactive data flows, similar to Observables or BehaviorSubjects.
+## Table of Contents
 
-Signals are more lightweight and built directly into the framework, making them easier to use and understand.
+- [Introduction](#introduction)
+- [Characteristics](#characteristics)
+- [Types of Signals](#types-of-signals)
+- [Writable Signals](#writable-signals)
+- [Read-only Signals](#read-only-signals)
+- [Computed Signals](#computed-signals)
+- [Effects](#effects)
+- [Equality Functions](#equality-functions)
+- [Read without Tracking Dependencies](#read-without-tracking-dependencies)
+- [Effective Cleanups](#effective-cleanups)
+- [Signals with RxJS](#signals-with-rxjs)
+  - [`toSignal`](#to-signal)
+  - [Manually Destroying Observables](#manually-destroying-observables)
+  - [Error and Completion](#error-and-completion)
+  - [`toObservable`](#to-observable)
+  - [`outputFromObservable`](#output-from-observable)
+  - [`outputToObservable`](#output-to-observable)
+- [Signal Inputs](#signal-inputs)
+- [Signal Queries](#signal-queries)
+- [Linked Signals](#linked-signals)
+
 
 ## Introduction
 
 A signal is a essentially a wrapper around a value that notifies consumers (functions,components or services) when the value changes.
 
 This allows for a reactive data flow, where components and services can subscribe to signals and react to changes in the value.
+
+Signals in Angular are a way to manage state and reactive data flows, similar to Observables or BehaviorSubjects.
+
+Signals are more lightweight and built directly into the framework, making them easier to use and understand.
 
 ## Characteristics
 
@@ -237,7 +261,9 @@ This will log the message if any one of the signal changes. However, if we want 
 ```ts
 effect(
   () => {
-    console.log(`User set to ${currentUser()} and the counter is ${untracked(counter)}`);
+    console.log(
+      `User set to ${currentUser()} and the counter is ${untracked(counter)}`
+    );
   },
   { allowSignalWrites: true }
 );
@@ -269,9 +295,9 @@ effect((onCleanup) => {
 });
 ```
 
-# Signals with RxJS
+## Signals with RxJS
 
-## `toSignal`
+### `toSignal`
 
 The `toSignal` function converts an RxJS Observable to a signal.
 
@@ -317,11 +343,11 @@ Options :
 - `manualCleanup` : This allows to clean up (unsubscribe) from the observable.
 - `requireSync` : It enforces the Observables emits synchronously on subscription.
 
-## Error and Completion
+### Error and Completion
 
 If an Observable used in `toSignal` produces an error, that error is thrown when the signal is read.
 
-## `toObservable`
+### `toObservable`
 
 `toObservable` is a utility in Angular that converts a signal to an Observable.
 This allows us to take the signal ans use it with RxJS operators like `map`, `filter`, `switchMap`, etc.
@@ -356,7 +382,7 @@ export class SignalComponent {
 }
 ```
 
-## `outputFromObservable`
+### `outputFromObservable`
 
 The `outputFromObservable` lets you create a component or directive output that emits based on an RxJS observable.
 
@@ -386,10 +412,12 @@ export class RxjsInteropComponent {
 <app-rxjs-interop (counter)="onCounterChange($event)"></app-rxjs-interop>
 
 <!-- Using outputFromObservable -->
-<app-rxjs-interop (outputFromObservable)="onCounterChange($event)"></app-rxjs-interop>
+<app-rxjs-interop
+  (outputFromObservable)="onCounterChange($event)"
+></app-rxjs-interop>
 ```
 
-## `outputToObservable`
+### `outputToObservable`
 
 The `outputToObservable` function lets you create an RxJS observable from a component output.
 
@@ -569,14 +597,21 @@ import { Component, linkedSignal, signal } from "@angular/core";
   template: `
     <ul>
       @for (reaction of reactions(); track $index) {
-      <li [class.selected]="isSelected(reaction)" (click)="selectedReaction.set(reaction)">
+      <li
+        [class.selected]="isSelected(reaction)"
+        (click)="selectedReaction.set(reaction)"
+      >
         {{ reaction }}
       </li>
       }
     </ul>
     <span>Selected Reaction: {{ selectedReaction() }}</span>
-    <button class="btn btn-primary" (click)="addReaction()">More Reaction</button>
-    <button class="btn btn-primary" (click)="removeReaction()">Less Reaction</button>
+    <button class="btn btn-primary" (click)="addReaction()">
+      More Reaction
+    </button>
+    <button class="btn btn-primary" (click)="removeReaction()">
+      Less Reaction
+    </button>
   `,
   styles: ``,
 })

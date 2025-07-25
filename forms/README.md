@@ -1,10 +1,28 @@
 # Angular Forms
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Reactive Forms](#reactive-forms)
+- [Template-Driven Forms](#template-driven-forms)
+- [Key Differences](#key-differences)
+- [Scalability](#scalability)
+- [Common Form Foundation classes](#common-form-foundation-classes)
+- [Data flows in Forms](#data-flows-in-forms)
+  - [Reactive Forms](#reactive-forms)
+  - [Template-Driven Forms](#template-driven-forms)
+- [Mutability of the Data Model](#mutability-of-the-data-model)
+- [Form group](#form-group)
+- [Nested Form Groups](#nested-form-groups)
+  - [Updating parts of the data model](#updating-parts-of-the-data-model)
+- [Using FormBuilder Service](#using-formbuilder-service)
+- [Validating Form Inputs](#validating-form-inputs)
+- [Creating Dynamic Forms](#creating-dynamic-forms)
+
 Angular provides two main types of forms:
 
 - **Reactive Forms**
 - **Template-Driven Forms**
-
 ## Reactive Forms
 
 These forms are controlled primarily through the component
