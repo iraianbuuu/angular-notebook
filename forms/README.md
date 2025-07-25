@@ -179,3 +179,182 @@ export class AppComponent {
   });
 }
 ```
+
+## Nested Form Groups
+
+```html
+<form [formGroup]="profileEditor" (ngSubmit)="onSubmit()">
+  <label for="firstName">First Name: </label>
+  <input type="text" name="" id="firstName" formControlName="firstName" />
+  <br />
+  <br />
+  <label for="lastName">Last Name: </label>
+  <input type="text" name="" id="lastName" formControlName="lastName" />
+  <br />
+  <br />
+  <div formGroupName="address">
+    <label for="city">City</label>
+    <input type="text" name="" id="city" formControlName="city" />
+    <br />
+    <br />
+    <label for="state">State</label>
+    <input type="text" name="" id="state" formControlName="state" />
+    <br />
+    <br />
+  </div>
+  <button type="submit">Submit</button>
+</form>
+```
+
+```ts
+@Component({...})
+export class AppComponent {
+profileEditor = new FormGroup({
+  firstName: new FormControl(""),
+  lastName: new FormControl(""),
+  address: new FormGroup({
+    city: new FormControl(""),
+    state: new FormControl(""),
+  }),
+});
+}
+```
+
+### Updating parts of the data model
+
+There are two ways to update the model value :
+
+- `setValue()` : It sets a new value for an individual control. This method strictly follows to the structure of the form group and replaces the entire value for the control.
+
+- `patchValue()` : Replace any properties defined in the object.
+
+```ts
+@Component({...})
+export class AppComponent {
+   updateProfile() {
+    this.profileEditor.patchValue({
+      firstName: 'Iraianbuu',
+      address: {
+        city: 'Bengaluru',
+      },
+    });
+    console.log(this.profileEditor.value);
+  }
+
+  saveProfile() {
+    this.profileEditor.setValue({
+      firstName: 'Iraianbu',
+      lastName: 'A',
+      address: {
+        city: 'Bengaluru',
+        state: 'Karnataka',
+      },
+    });
+    console.log(this.profileEditor.value);
+  }
+}
+```
+
+## Using FormBuilder Service
+
+```ts
+@Component({...})
+export class AppComponent {
+  private fb = inject(FormBuilder);
+
+  profileEditor = this.fb.group({
+    firstName: [''],
+    lastName: [''],
+    address: this.fb.group({
+      city: [''],
+      state: [''],
+    }),
+  });
+}
+```
+
+## Validating Form Inputs
+
+```ts
+@Component({...})
+export class AppComponent {
+  private fb = inject(FormBuilder);
+
+  profileEditor = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: [''],
+    address: this.fb.group({
+      city: [''],
+      state: [''],
+    }),
+  });
+}
+```
+
+```html
+<form [formGroup]="profileEditor" (ngSubmit)="onSubmit()">
+  <label for="firstName">First Name: </label>
+  <input type="text" name="" id="firstName" formControlName="firstName" />
+  @if (profileEditor.get('firstName')?.invalid &&
+  profileEditor.get('firstName')?.touched) {
+  <p>First name is required</p>
+  }
+  <label for="lastName">Last Name: </label>
+  <input type="text" name="" id="lastName" formControlName="lastName" />
+  <br />
+  <br />
+  <div formGroupName="address">
+    <label for="city">City</label>
+    <input type="text" name="" id="city" formControlName="city" />
+    <br />
+    <br />
+    <label for="state">State</label>
+    <input type="text" name="" id="state" formControlName="state" />
+    <br />
+    <br />
+  </div>
+  <button type="submit" [disabled]="!profileEditor.valid">Submit</button>
+</form>
+<p>Profile form {{profileEditor.status}}</p>
+```
+
+## Creating Dynamic Forms
+
+```html
+<div formArrayName="aliases">
+  <h3>Aliases</h3>
+  <button type="button" (click)="addAliases()">Add</button>
+  @for (alias of aliases.controls; track $index ; let i = $index) {
+  <div>
+    <label for="alias-{{ i }}">Alias - {{ i }}</label>
+    <input type="text" name="" id="alias-{{ i }}" [formControlName]="i" />
+  </div>
+  }
+</div>
+<pre>{{ profileEditor.value | json }}</pre>
+```
+
+```ts
+@Component({...})
+export class AppComponent {
+  private fb = inject(FormBuilder);
+
+  profileEditor = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: [''],
+    address: this.fb.group({
+      city: [''],
+      state: [''],
+    }),
+    aliases: this.fb.array([this.fb.control('')]),
+  });
+}
+
+  get aliases() {
+    return this.profileEditor.get('aliases') as FormArray;
+  }
+
+  addAliases() {
+    this.aliases.push(this.fb.control(''));
+  }
+```
