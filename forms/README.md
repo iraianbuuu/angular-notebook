@@ -23,6 +23,7 @@ Angular provides two main types of forms:
 
 - **Reactive Forms**
 - **Template-Driven Forms**
+
 ## Reactive Forms
 
 These forms are controlled primarily through the component
@@ -376,3 +377,7 @@ export class AppComponent {
     this.aliases.push(this.fb.control(''));
   }
 ```
+
+## Typed Forms
+
+## Untyped Forms
