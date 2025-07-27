@@ -18,6 +18,15 @@
 - [Using FormBuilder Service](#using-formbuilder-service)
 - [Validating Form Inputs](#validating-form-inputs)
 - [Creating Dynamic Forms](#creating-dynamic-forms)
+- [Typed Forms](#typed-forms)
+- [Untyped Forms](#untyped-forms)
+- [FormControl](#formcontrol)
+  - [Nullabilty](#nullabilty)
+- [FormArray](#formarray)
+- [FormGroup](#form-group)
+  - [Optional Controls and Dynamic Groups](#optinal-controls-and-dynamic-groups)
+- [FormRecord](#formrecord)
+- [FormBuilder and NonNullableFormBuilder](#formbuilder-and-nonnullableformbuilder)
 
 Angular provides two main types of forms:
 
@@ -380,4 +389,130 @@ export class AppComponent {
 
 ## Typed Forms
 
+```ts
+const login = new FormGroup({
+  email: new FormControl(""),
+  password: new FormControl(""),
+});
+```
+
+The Angular provides many APIs for `FormGroup`. For example, you may use `login.value` , `login.controls` , `login.patchValue`.
+
+```ts
+const emailDomain = login.value.email.domain;
+```
+
+The above code does not compile, because there is no `domain` property on `email`.
+
 ## Untyped Forms
+
+```ts
+const login = new UntypedFormGroup({
+  email: new UntypedFormControl(""),
+  password: new UntypedFormControl(""),
+});
+```
+
+## FormControl
+
+```ts
+const email = new FormControl("angularrox@gmail.com");
+
+const age = new FormControl<number | null>(0); // We can also specify an explicit type.
+```
+
+This control will automatically inferred to `FormControl<string|null>`.
+
+### Nullabilty
+
+```ts
+const email = new FormControl("iraianbu011@gmail.com");
+email.reset();
+console.log(email.value); // null
+```
+
+The `email` becomes `null` because the control can become `null` at any time. If we want to make this control non-nullable, we can use the `nonNullable` property.
+
+```ts
+const email = new FormControl("iraianbu011@gmail.com", { nonNullable: true });
+email.reset();
+console.log(email.value); // iraianbu011@gmail.com
+```
+
+## FormArray
+
+A `FormArray` contains list of controls. The type parameter corresponds to the type of each inner control.
+
+```ts
+const names = new FormArray([new FormControl("Irai")]);
+names.push(new FormControl("Anbu"));
+```
+
+This will be inferred to `FormArray<string|null>`. If we want to use multiple different element, we can use `UntypedFormArray`.
+
+## FormGroup
+
+The `FormGroup` type for forms with an enumerated set of keys.
+
+```ts
+const login = new FormGroup({
+  email: new FormControl("", { nonNullable: true }),
+  password: new FormControl("", { nonNullable: true }),
+});
+```
+
+It is possible to **disable controls**. It will not appear in the group's value. The `login.value` is `Partial<{email:string,password:string}>. If we want to access the value including disabled controls, we can use `login.getRawValue()`.
+
+### Optinal Controls and Dynamic Groups
+
+```ts
+interface LoginForm {
+  email: FormControl<string>;
+  password?: FormControl<string>;
+}
+const login = new FormGroup<LoginForm>({
+  email: new FormControl("", { nonNullable: true }),
+  password: new FormControl("", { nonNullable: true }),
+});
+login.removeControl("password");
+```
+
+The Typescript will only allow optional controls to be added or removed.
+
+## FormRecord
+
+`FormRecord` can be used when the keys are not known ahead of time.
+
+```ts
+const addresses = new FormRecord<FormControl<string | null>>({});
+addresses.addControl("Andrew", new FormControl("2340 Folsom St"));
+```
+
+This will be inferred to `FormArray<string|null>`.
+
+If we need a `FormGroup` that is both dynamic and heterogeneous, we should use `UntypedFormGroup`.
+
+A `FormRecord` can be also built with `FormBuilder`.
+
+```ts
+const addresses = fb.record({ Andrew: "2340 Folsom St" });
+```
+
+## FormBuilder and NonNullableFormBuilder
+
+```ts
+const fb = inject(FormBuilder);
+const login = fb.nonNullable.group({
+  email: "",
+  password: "",
+});
+```
+
+```ts
+const fb = inject(NonNullableFormBuilder);
+const login = fb.group({
+  email: "",
+  password: "",
+});
+```
+Both example set inner controls will be `nonNullable`.
