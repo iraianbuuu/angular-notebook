@@ -172,27 +172,7 @@ We can use the template reference variable to access the input field to add cust
 
 ## Validating Input
 
-To add validation, we can use the native HTML form validation like `required` , `minlength` etc..,<input
-  type="text"
-  name="user-name"
-  id="user-name"
-  class="form-control"
-  required
-  minlength="4"
-  [(ngModel)]="user"
-  #testUser="ngModel"
-/>
-<br />
-
-@if (testUser.invalid && (testUser.dirty || testUser.pristine)) {
-<div>
-  @if (testUser.hasError('required')) {
-  <p class="alert alert-danger">Name is required</p>
-  } @if (testUser.hasError('minlength')) {
-  <p class="alert alert-danger">Name must be 4 characters long</p>
-  }
-</div>
-}
+To add validation, we can use the native HTML form validation like `required` , `minlength` etc..,
 
 ```html
 <input
@@ -217,3 +197,48 @@ To add validation, we can use the native HTML form validation like `required` , 
 </div>
 }
 ```
+
+## Custom Validators
+
+The built-in validators don't always match the usecase of the application. This example demonstrates to check the forbidden name.
+
+```ts
+import { AbstractControl, ValidatorFn } from "@angular/forms";
+export const forbiddenNameValidator =
+  (name: RegExp): ValidatorFn =>
+  (control: AbstractControl) => {
+    const value = control.value;
+    const forbidden = name.test(value);
+    return forbidden ? { forbiddenName: { value } } : null;
+  };
+```
+
+```ts
+@Directive({
+  selector: "[appForbiddenName]",
+  providers: [
+    {
+      provide: NG_VALIDATORS,
+      useExisting: ForbiddenNameDirective,
+      multi: true,
+    },
+  ],
+})
+export class ForbiddenNameDirective implements Validator {
+  forbiddenName = input<string>("", {
+    alias: "appForbiddenName",
+  });
+  validate(control: AbstractControl): ValidationErrors | null {
+    return this.forbiddenName
+      ? forbiddenNameValidator(new RegExp(this.forbiddenName(), "i"))(control)
+      : null;
+  }
+}
+```
+```html
+@if(testUser.hasError('forbiddenName')){
+<p class="alert alert-danger">Invalid Name</p>
+}
+```
+> [!NOTE]
+> The custom validation directive is instantiated with `useExisting` rather than `useClass`. 
