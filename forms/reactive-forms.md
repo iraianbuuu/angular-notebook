@@ -17,6 +17,14 @@
   - [Optional Controls and Dynamic Groups](#optinal-controls-and-dynamic-groups)
 - [FormRecord](#formrecord)
 - [FormBuilder and NonNullableFormBuilder](#formbuilder-and-nonnullableformbuilder)
+- [Validating Input](#validating-input)
+  - [Validators Functions](#validator-functions)
+  - [Built-in Validators functions](#built-in-validators-functions)
+  - [Custom Validators](#custom-validators)
+- [Control status CSS classes](#control-status-css-classes)
+  - [Validation state classes](#validation-state-classes)
+  - [Interaction state classes](#interaction-state-classes)
+  - [Form state class](#form-state-class)
 
 ## Form group
 
@@ -363,12 +371,121 @@ const login = fb.group({
   password: "",
 });
 ```
+
 Both example set inner controls will be `nonNullable`.
 
 ## Validating Input
 
+Instead of adding validators through attributes in the template, we can add directly to the form control model in the component class.
+
 ### Validator Functions
+
+The validators functions can be either synchronous or asynchronous.
+
+| Type             | Definition                                                                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Sync validators  | This will take a control instance and return either set of validation errors or null. It should be passed as a second argument.                              |
+| Async validators | This will take a control instance and return a Promise or Observable that emits a set of validation errors or null. It should be passed as a third argument. |
+
+> [!NOTE] Angular runs async validators if all sync validators pass.
 
 ### Built-in Validators Functions
 
+The same built-in validators that are available in [Template Driven Forms](template-driven-forms.md) as such as `required`, `min` , `max` , `minLength` , `maxLength` etc..,
+
+```ts
+ private fb = inject(FormBuilder);
+
+  actorForm = this.fb.group({
+    name: this.fb.control('', [Validators.required, Validators.minLength(4)]),
+    role: this.fb.control(''),
+    skill: this.fb.control('', [Validators.required]),
+  });
+
+  get name() {
+    return this.actorForm.get('name');
+  }
+
+  get skill() {
+    return this.actorForm.controls.skill;
+  }
+```
+
+```html
+<form [formGroup]="actorForm">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input
+      type="text"
+      class="form-control"
+      name="name"
+      id="name"
+      formControlName="name"
+    />
+    @if(name?.invalid && (name?.touched || name?.dirty)){ @if
+    (name?.hasError('required')) {
+    <div class="alert alert-danger">Name is required</div>
+    } @if (name?.hasError('minlength')) {
+    <div class="alert alert-danger">Name must be 4 characters long</div>
+    } }
+    <label for="role">Role</label>
+    <input
+      type="text"
+      name="role"
+      class="form-control"
+      id="role"
+      formControlName="role"
+    />
+    <label for="skill">Skill</label>
+    <input
+      type="text"
+      name="skill"
+      class="form-control"
+      id="skill"
+      formControlName="skill"
+    />
+    @if(skill.invalid && (skill.touched || skill.dirty)){ @if
+    (skill.hasError('required')) {
+    <div class="alert alert-danger">Name is required</div>
+    } }
+  </div>
+  <button class="btn btn-success" [disabled]="actorForm.invalid">Submit</button>
+</form>
+```
+
 ### Custom Validators
+
+In reactive forms, we can add a custom validator by passing a function directly to the `FormControl`.
+
+```ts
+actorForm = this.fb.group({
+  name: this.fb.control("", [
+    Validators.required,
+    Validators.minLength(4),
+    forbiddenNameValidator(/irai/i),
+  ]),
+  role: this.fb.control(""),
+  skill: this.fb.control("", [Validators.required]),
+});
+```
+
+## Control status CSS classes
+
+Angular provides many control properties onto the form control element as CSS classes.
+
+### Validation state classes
+
+- `.ng-valid`
+- `.ng-invalid`
+- `.ng-pending` (Used in Asynchronous validation)
+
+### Interaction state classes
+
+- `.ng-pristine`
+- `.ng-dirty`
+- `.ng-touched`
+- `.ng-untouched`
+
+### Form state class
+
+- `.ng-submitted` (After the form gets submitted)
