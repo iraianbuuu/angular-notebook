@@ -1,5 +1,18 @@
 # Template-Driven Forms
 
+## Table of contents
+
+- [Directives](#directives)
+- [Bind input controls](#bind-input-controls)
+- [Access Overall Form](#access-overall-form)
+- [Naming control](#naming-control)
+- [Track form states](#track-form-states)
+- [Track control states](#track-control-states)
+- [Show/Hide validation error messages](#showhide-validation-error-messages)
+- [Validating Input](#validating-input)
+- [Custom Validators](#custom-validators)
+- [Cross-Validation](#cross-validation)
+
 ## Directives
 
 | Directive      | Description                                                                                                         |
@@ -235,10 +248,42 @@ export class ForbiddenNameDirective implements Validator {
   }
 }
 ```
+
 ```html
 @if(testUser.hasError('forbiddenName')){
 <p class="alert alert-danger">Invalid Name</p>
 }
 ```
+
 > [!NOTE]
-> The custom validation directive is instantiated with `useExisting` rather than `useClass`. 
+> The custom validation directive is instantiated with `useExisting` rather than `useClass`.
+
+### Cross-Validation
+
+A cross-field validator is a [custom validator](#custom-validators) that will compares the values of different fields in aform and accepts or rejects them in combination.
+
+```html
+<form #actorForm="ngForm" appUnambiguous (ngSubmit)="onFormSubmit(actorForm)">
+  @if(actorForm.hasError('unambiguous') && (actorForm. touched ||
+  actorForm.dirty)){
+  <div class="alert alert-danger">Name and Role cannot be same</div>
+  }
+</form>
+```
+
+```ts
+import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
+
+export const unAmbiguousValidator: ValidatorFn = (
+  control: AbstractControl
+): ValidationErrors | null => {
+  const name = control.get("name");
+  const role = control.get("role");
+
+  return name && role && name.value === role.value
+    ? {
+        unambiguous: true,
+      }
+    : null;
+};
+```

@@ -25,6 +25,7 @@
   - [Validation state classes](#validation-state-classes)
   - [Interaction state classes](#interaction-state-classes)
   - [Form state class](#form-state-class)
+- [Cross Validation](#cross-validation)
 
 ## Form group
 
@@ -489,3 +490,42 @@ Angular provides many control properties onto the form control element as CSS cl
 ### Form state class
 
 - `.ng-submitted` (After the form gets submitted)
+
+### Cross Validation
+
+A cross-field validator is a [custom validator](#custom-validators) that will compares the values of different fields in aform and accepts or rejects them in combination.
+
+```ts
+actorForm = this.fb.group(
+  {
+    name: this.fb.control(""),
+    role: this.fb.control(""),
+    skill: this.fb.control(""),
+  },
+  { validators: unAmbiguousValidator }
+);
+```
+
+```html
+@if(actorForm.hasError('unambiguous') && (actorForm.touched ||
+actorForm.dirty)){
+<div class="alert alert-danger">Name and Role cannot be same</div>
+}
+```
+
+```ts
+import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
+
+export const unAmbiguousValidator: ValidatorFn = (
+  control: AbstractControl
+): ValidationErrors | null => {
+  const name = control.get("name");
+  const role = control.get("role");
+
+  return name && role && name.value === role.value
+    ? {
+        unambiguous: true,
+      }
+    : null;
+};
+```
