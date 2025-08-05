@@ -12,6 +12,8 @@
 - [Validating Input](#validating-input)
 - [Custom Validators](#custom-validators)
 - [Cross-Validation](#cross-validation)
+- [Asynchronous Validation](#asynchronous-validation)
+  - [Optimize Performance](#optimize-performance)
 
 ## Directives
 
@@ -36,6 +38,8 @@ Create a template reference variable and update with the `form` tag.
 ## Naming control
 
 When we use `ngModel` on a element, we must define a `name` attribute.
+
+`template-driven-form.html`
 
 ```html
 <div class="form-group">
@@ -93,6 +97,7 @@ We can use the template reference variable to access the input field to add cust
 }
 ```
 
+`template-driven-form.html`
 ```html
 <div class="form-group">
   <label for="name">Name</label>
@@ -113,6 +118,8 @@ We can use the template reference variable to access the input field to add cust
 ```
 
 ### Example
+
+`template-driven-form.html`
 
 ```html
 <form #actorForm="ngForm" (ngSubmit)="onFormSubmit(actorForm)">
@@ -162,6 +169,7 @@ We can use the template reference variable to access the input field to add cust
 
 <pre>Form Status : {{ model | json }}</pre>
 ```
+`template-driven-form.component.ts`
 
 ```ts
   skills = ['Acting', 'Singing', 'Dancing', 'Fighting'];
@@ -187,6 +195,7 @@ We can use the template reference variable to access the input field to add cust
 
 To add validation, we can use the native HTML form validation like `required` , `minlength` etc..,
 
+`template-driven-form.html`
 ```html
 <input
   type="text"
@@ -215,6 +224,8 @@ To add validation, we can use the native HTML form validation like `required` , 
 
 The built-in validators don't always match the usecase of the application. This example demonstrates to check the forbidden name.
 
+`forbidden-name.validator.ts`
+
 ```ts
 import { AbstractControl, ValidatorFn } from "@angular/forms";
 export const forbiddenNameValidator =
@@ -226,6 +237,7 @@ export const forbiddenNameValidator =
   };
 ```
 
+`forbidden-name.directive.ts`
 ```ts
 @Directive({
   selector: "[appForbiddenName]",
@@ -248,6 +260,7 @@ export class ForbiddenNameDirective implements Validator {
   }
 }
 ```
+`template-driven-form.html`
 
 ```html
 @if(testUser.hasError('forbiddenName')){
@@ -255,12 +268,13 @@ export class ForbiddenNameDirective implements Validator {
 }
 ```
 
-> [!NOTE]
-> The custom validation directive is instantiated with `useExisting` rather than `useClass`.
+>The custom validation directive is instantiated with `useExisting` rather than `useClass`.
 
 ### Cross-Validation
 
 A cross-field validator is a [custom validator](#custom-validators) that will compares the values of different fields in aform and accepts or rejects them in combination.
+
+`template-driven-form.html`
 
 ```html
 <form #actorForm="ngForm" appUnambiguous (ngSubmit)="onFormSubmit(actorForm)">
@@ -270,6 +284,8 @@ A cross-field validator is a [custom validator](#custom-validators) that will co
   }
 </form>
 ```
+
+`unambiguous.validator.ts`
 
 ```ts
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
@@ -286,4 +302,117 @@ export const unAmbiguousValidator: ValidatorFn = (
       }
     : null;
 };
+```
+### Asynchronous Validation
+
+The Asynchronous validators implement the `AsyncValidatorFn` and `AsyncValidator` interfaces. The following are the difference between the synchronous validation,
+
+- The `validate()` function return a Promise or Observable.
+- The `Observable` must be finite.
+
+The validation happens after the synchronous validation, and is performed only if the synchronous validation is successful. After validation begins, the form control enters a `pending` state.
+
+`unique-role.validator.ts`
+```ts
+import { AbstractControl, AsyncValidatorFn } from "@angular/forms";
+import { map } from "rxjs";
+import { UniqueRoleService } from "../services/unique-role";
+
+export const uniqueRoleValidation =
+  (roleService: UniqueRoleService): AsyncValidatorFn =>
+  (control: AbstractControl) => {
+    const role = control.value;
+    return roleService
+      .isUnique(role)
+      .pipe(map((isUnique) => (isUnique ? { uniqueRole: true } : null)));
+  };
+```
+
+`unique-role.service.ts`
+```ts
+import { Injectable } from "@angular/core";
+import { delay, Observable, of } from "rxjs";
+
+@Injectable({
+  providedIn: "root",
+})
+export class UniqueRoleService {
+  roles = ["actor", "director", "producer"];
+
+  isUnique(role: string): Observable<boolean> {
+    return of(this.roles.includes(role)).pipe(delay(1000));
+  }
+}
+```
+
+`unique-role.directive.ts`
+```ts
+import { Directive, inject } from '@angular/core';
+import {
+  AbstractControl,
+  AsyncValidator,
+  NG_ASYNC_VALIDATORS,
+  ValidationErrors,
+} from '@angular/forms';
+import { Observable } from 'rxjs';
+import { UniqueRoleService } from '../services/unique-role';
+import { uniqueRoleValidation } from './unique-role.validator';
+
+@Directive({
+  selector: '[appUniqueRole]',
+  providers: [
+    {
+      provide: NG_ASYNC_VALIDATORS,
+      useExisting: UniqueRoleDirective,
+      multi: true,
+    },
+  ],
+})
+export class UniqueRoleDirective implements AsyncValidator {
+  private uniqueRoleService = inject(UniqueRoleService);
+  validate(
+    control: AbstractControl
+  ): Promise<ValidationErrors | null> | Observable<ValidationErrors | null> {
+    return uniqueRoleValidation(this.uniqueRoleService)(control);
+  }
+}
+
+```
+
+`template-driven-form.html`
+
+```html
+ <div class="form-group">
+    <label for="role">Role</label>
+    <input
+      class="form-control"
+      type="text"
+      name="role"
+      id="role"
+      [(ngModel)]="model.role"
+      #userRole="ngModel"
+      required
+      name="role"
+      [ngModelOptions]="{ updateOn: 'blur' }"
+      appUniqueRole
+    />
+  </div>
+
+  @if(userRole.pending){
+  <div class="alert alert-warning">Validating Role....</div>
+  } 
+  
+  @if(userRole.hasError('uniqueRole')){
+  <div class="alert alert-danger">Role should be unique</div>
+  }
+```
+
+### Optimize Performance
+
+We can delay the form validity by changing the `updateOn` property from `change` to `submit` or `blur`.
+
+`template-driven-form.html` 
+
+```html
+<input [(ngModel)]="name" [ngModelOptions]="{updateOn: 'blur'}">
 ```

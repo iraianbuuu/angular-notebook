@@ -26,6 +26,9 @@
   - [Interaction state classes](#interaction-state-classes)
   - [Form state class](#form-state-class)
 - [Cross Validation](#cross-validation)
+- [Asynchronous Validation](#asynchronous-validation)
+  - [Optimize Performance](#optimize-performance)
+
 
 ## Form group
 
@@ -38,6 +41,8 @@ Forms typically contain several related controls. Reactive forms provide two typ
 Just as a form control instance gives you control over a single input field, a form group instance tracks the form state of a group of form control instances (for example, a form). Each control in a form group instance is tracked by name when creating the form group.
 
 ### Example
+
+`reactive-form.html`
 
 ```html
 <h3>Formgroup</h3>
@@ -55,6 +60,8 @@ Just as a form control instance gives you control over a single input field, a f
 </form>
 ```
 
+`reactive-form.component.ts`
+
 ```ts
 @Component({...})
 export class AppComponent {
@@ -66,6 +73,8 @@ export class AppComponent {
 ```
 
 ## Nested Form Groups
+
+`reactive-form.html`
 
 ```html
 <form [formGroup]="profileEditor" (ngSubmit)="onSubmit()">
@@ -91,6 +100,7 @@ export class AppComponent {
 </form>
 ```
 
+`reactive-form.component.ts`
 ```ts
 @Component({...})
 export class AppComponent {
@@ -113,6 +123,7 @@ There are two ways to update the model value :
 
 - `patchValue()` : Replace any properties defined in the object.
 
+`reactive-form.component.ts`
 ```ts
 @Component({...})
 export class AppComponent {
@@ -142,6 +153,7 @@ export class AppComponent {
 
 ## Using FormBuilder Service
 
+`reactive-form.component.ts`
 ```ts
 @Component({...})
 export class AppComponent {
@@ -160,6 +172,7 @@ export class AppComponent {
 
 ## Validating Form Inputs
 
+`reactive-form.component.ts`
 ```ts
 @Component({...})
 export class AppComponent {
@@ -176,6 +189,7 @@ export class AppComponent {
 }
 ```
 
+`reactive-form.html`
 ```html
 <form [formGroup]="profileEditor" (ngSubmit)="onSubmit()">
   <label for="firstName">First Name: </label>
@@ -205,6 +219,7 @@ export class AppComponent {
 
 ## Creating Dynamic Forms
 
+`reactive-form.html`
 ```html
 <div formArrayName="aliases">
   <h3>Aliases</h3>
@@ -219,6 +234,7 @@ export class AppComponent {
 <pre>{{ profileEditor.value | json }}</pre>
 ```
 
+`reactive-form.component.ts`
 ```ts
 @Component({...})
 export class AppComponent {
@@ -246,6 +262,7 @@ export class AppComponent {
 
 ## Typed Forms
 
+`reactive-form.component.ts`
 ```ts
 const login = new FormGroup({
   email: new FormControl(""),
@@ -263,6 +280,7 @@ The above code does not compile, because there is no `domain` property on `email
 
 ## Untyped Forms
 
+`reactive-form.component.ts`
 ```ts
 const login = new UntypedFormGroup({
   email: new UntypedFormControl(""),
@@ -272,6 +290,7 @@ const login = new UntypedFormGroup({
 
 ## FormControl
 
+`reactive-form.component.ts`
 ```ts
 const email = new FormControl("angularrox@gmail.com");
 
@@ -282,7 +301,8 @@ This control will automatically inferred to `FormControl<string|null>`.
 
 ### Nullabilty
 
-```ts
+`reactive-form.component.ts`
+```ts 
 const email = new FormControl("iraianbu011@gmail.com");
 email.reset();
 console.log(email.value); // null
@@ -290,6 +310,7 @@ console.log(email.value); // null
 
 The `email` becomes `null` because the control can become `null` at any time. If we want to make this control non-nullable, we can use the `nonNullable` property.
 
+`reactive-form.component.ts`
 ```ts
 const email = new FormControl("iraianbu011@gmail.com", { nonNullable: true });
 email.reset();
@@ -300,6 +321,7 @@ console.log(email.value); // iraianbu011@gmail.com
 
 A `FormArray` contains list of controls. The type parameter corresponds to the type of each inner control.
 
+`reactive-form.component.ts`
 ```ts
 const names = new FormArray([new FormControl("Irai")]);
 names.push(new FormControl("Anbu"));
@@ -311,6 +333,7 @@ This will be inferred to `FormArray<string|null>`. If we want to use multiple di
 
 The `FormGroup` type for forms with an enumerated set of keys.
 
+`reactive-form.component.ts`
 ```ts
 const login = new FormGroup({
   email: new FormControl("", { nonNullable: true }),
@@ -322,6 +345,7 @@ It is possible to **disable controls**. It will not appear in the group's value.
 
 ### Optinal Controls and Dynamic Groups
 
+`reactive-form.component.ts`
 ```ts
 interface LoginForm {
   email: FormControl<string>;
@@ -340,6 +364,7 @@ The Typescript will only allow optional controls to be added or removed.
 
 `FormRecord` can be used when the keys are not known ahead of time.
 
+`reactive-form.component.ts`
 ```ts
 const addresses = new FormRecord<FormControl<string | null>>({});
 addresses.addControl("Andrew", new FormControl("2340 Folsom St"));
@@ -351,12 +376,14 @@ If we need a `FormGroup` that is both dynamic and heterogeneous, we should use `
 
 A `FormRecord` can be also built with `FormBuilder`.
 
+`reactive-form.component.ts`
 ```ts
 const addresses = fb.record({ Andrew: "2340 Folsom St" });
 ```
 
 ## FormBuilder and NonNullableFormBuilder
 
+`reactive-form.component.ts`
 ```ts
 const fb = inject(FormBuilder);
 const login = fb.nonNullable.group({
@@ -388,12 +415,13 @@ The validators functions can be either synchronous or asynchronous.
 | Sync validators  | This will take a control instance and return either set of validation errors or null. It should be passed as a second argument.                              |
 | Async validators | This will take a control instance and return a Promise or Observable that emits a set of validation errors or null. It should be passed as a third argument. |
 
-> [!NOTE] Angular runs async validators if all sync validators pass.
+> Angular runs async validators if all sync validators pass.
 
 ### Built-in Validators Functions
 
 The same built-in validators that are available in [Template Driven Forms](template-driven-forms.md) as such as `required`, `min` , `max` , `minLength` , `maxLength` etc..,
 
+`reactive-form.component.ts`
 ```ts
  private fb = inject(FormBuilder);
 
@@ -412,6 +440,7 @@ The same built-in validators that are available in [Template Driven Forms](templ
   }
 ```
 
+`reactive-form.html`
 ```html
 <form [formGroup]="actorForm">
   <div class="form-group">
@@ -458,6 +487,7 @@ The same built-in validators that are available in [Template Driven Forms](templ
 
 In reactive forms, we can add a custom validator by passing a function directly to the `FormControl`.
 
+`reactive-form.component.ts`
 ```ts
 actorForm = this.fb.group({
   name: this.fb.control("", [
@@ -491,10 +521,11 @@ Angular provides many control properties onto the form control element as CSS cl
 
 - `.ng-submitted` (After the form gets submitted)
 
-### Cross Validation
+## Cross Validation
 
 A cross-field validator is a [custom validator](#custom-validators) that will compares the values of different fields in aform and accepts or rejects them in combination.
 
+`reactive-form.component.ts`
 ```ts
 actorForm = this.fb.group(
   {
@@ -506,6 +537,7 @@ actorForm = this.fb.group(
 );
 ```
 
+`reactive-form.html`
 ```html
 @if(actorForm.hasError('unambiguous') && (actorForm.touched ||
 actorForm.dirty)){
@@ -513,6 +545,7 @@ actorForm.dirty)){
 }
 ```
 
+`unambiguous.validator.ts`
 ```ts
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 
@@ -528,4 +561,89 @@ export const unAmbiguousValidator: ValidatorFn = (
       }
     : null;
 };
+```
+
+## Asynchronous Validation
+
+The Asynchronous validators implement the `AsyncValidatorFn` and `AsyncValidator` interfaces. The following are the difference between the synchronous validation,
+
+- The `validate()` function return a Promise or Observable.
+- The `Observable` must be finite.
+
+The validation happens after the synchronous validation, and is performed only if the synchronous validation is successful. After validation begins, the form control enters a `pending` state.
+
+`unique-role.validator.ts`
+```ts
+import { AbstractControl, AsyncValidatorFn } from "@angular/forms";
+import { map } from "rxjs";
+import { UniqueRoleService } from "../services/unique-role";
+
+export const uniqueRoleValidation =
+  (roleService: UniqueRoleService): AsyncValidatorFn =>
+  (control: AbstractControl) => {
+    const role = control.value;
+    return roleService
+      .isUnique(role)
+      .pipe(map((isUnique) => (isUnique ? { uniqueRole: true } : null)));
+  };
+```
+
+`unique-role.service.ts`
+```ts
+import { Injectable } from "@angular/core";
+import { delay, Observable, of } from "rxjs";
+
+@Injectable({
+  providedIn: "root",
+})
+export class UniqueRoleService {
+  roles = ["actor", "director", "producer"];
+
+  isUnique(role: string): Observable<boolean> {
+    return of(this.roles.includes(role)).pipe(delay(1000));
+  }
+}
+```
+
+`reactive-form.html`
+```html
+<label for="role">Role</label>
+<input
+  type="text"
+  name="role"
+  class="form-control"
+  id="role"
+  formControlName="role"
+/>
+
+@if(role.pending && (role.dirty || role.touched)) {
+<div class="alert alert-warning">Checking role...</div>
+} @if(role.hasError('uniqueRole')) {
+<div class="alert alert-danger">Role must be unique</div>
+}
+```
+
+`reactive-form.component.ts`
+```ts
+  private roleService = inject(UniqueRoleService);
+
+  actorForm = this.fb.group(
+    {
+      name: this.fb.control(''),
+      role: this.fb.control('', {
+        asyncValidators: uniqueRoleValidation(this.roleService),
+        updateOn : 'blur'
+      }),
+      skill: this.fb.control(''),
+    },
+  );
+```
+
+### Optimize Performance
+
+We can delay the form validity by changing the `updateOn` property from `change` to `submit` or `blur`.
+
+`reactive-form.component.ts`
+```ts
+new FormControl('', {updateOn: 'blur'});
 ```
