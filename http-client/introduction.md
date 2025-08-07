@@ -26,6 +26,7 @@ export const appConfig: ApplicationConfig = {
 2. `withInterceptors` - Configures a set of interceptor functions which will process requests made through `HttpClient`.
 3. `withXsrfConfiguration` - Allows customization of XSRF security functionality.
 4. `withNoXsrfProtection` - Disables built-in XSRF security functionality.
+5. `withRequestsMadeViaParent() - This overrides any configuration for `HttpClient` which may present in the parent injector.
 
 ## Example
 
@@ -65,3 +66,9 @@ export class ApiService {
   }
 }
 ```
+
+## `withRequestsMadeViaParent`
+
+By default, when we configure `HttpClient` using `provideHttpClient` within a given injector, this configuration overrides any configuration for `HttpClient` which may be present in the parent injector.
+ 
+This is useful if you want to add interceptors in a child injector, while still sending the request through the parent injector's interceptors as well.
