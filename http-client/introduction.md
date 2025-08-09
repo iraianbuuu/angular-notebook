@@ -119,3 +119,63 @@ We can tell the `HttpClient` what response type to expect and return when making
     });
   }
 ```
+
+## Mutating server state
+
+The `HttpClient.post()` method behaves similarly to `get()` and accepts an additional `body`.
+
+```ts
+  createPost() {
+    const newPost = {
+      title: 'foo',
+      body: 'bar',
+      userId: '1',
+    };
+    return this.http.post(this.POSTS_URL, newPost , {
+      headers : {
+        'Content-type' : 'application/json'
+      }
+    }).subscribe((response) => console.log(response));
+  }
+```
+
+| Type                                 | Serialized as                                       |
+| ------------------------------------ | --------------------------------------------------- |
+| string                               | plain text                                          |
+| number,boolean,array or plain object | JSON                                                |
+| `ArrayBuffer`                        | raw data from the buffer                            |
+| `Blob`                               | raw data with the `Blob`'s content type             |
+| `FormData`                           | `multipart/form-data` encoded data                  |
+| `HttpParams or `URLSearchParams`     | `application/x-www-form-urlencoded formatted string |
+
+## Setting URL Parameters
+
+To specify request parameters in the request URL, we can use `params` option. Alternatively, we can pass an instance of `HttpParams` if we need control over the parameters.
+
+> `HttpParams` are immutable and cannot be directly changed.
+
+```ts
+  getTodosByFilter(id: number) {
+    const params = new HttpParams();
+    const todoId = params.set('id', id);
+    const userId = todoId.set('userId', id);
+    return this.http.get(this.URL, {
+      params: userId,
+    });
+  }
+```
+
+## Setting request headers
+
+To specify the request headers in the request URL, we can use `headers` option. Alternatively, we can pass an instance of `HttpHeaders` if we need control over the headers.
+
+> `HttpHeaders` are immutable and cannot be changed directly.
+
+```ts
+  getTodosByFilter(id: number) {
+    const customHeader = headers.set("X-Custom-Header", "@#12");
+    return this.http.get(this.URL, {
+      headers: customHeader,
+    });
+  }
+```
