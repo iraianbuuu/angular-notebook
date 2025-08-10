@@ -179,3 +179,22 @@ To specify the request headers in the request URL, we can use `headers` option. 
     });
   }
 ```
+
+## Interacting with the server response events
+
+`HttpClient` by default returns an `Observable` of the data returned by the server (response body). To access the entire response, set the `observe` option to `response`.
+
+```ts
+createPost() {
+    const newPost = {
+      title: 'foo',
+      body: 'bar',
+      userId: '1',
+    };
+    return this.http.post(this.POSTS_URL, newPost , {
+      observe : 'response',
+    }).subscribe((response) => {
+      console.log(response.status)
+    });
+  }
+```
