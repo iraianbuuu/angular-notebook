@@ -2,6 +2,19 @@
 
 ## Table of Contents
 
+- [Introduction](#introduction)
+- [Setting up](#setting-up)
+- [Configuration of HttpClient](#configuration-of-httpclient)
+- [Example](#example)
+- [withRequestsMadeViaParent](#withrequestsmadeviaparent)
+- [Making HTTP Requests](#making-http-requests)
+  - [Fetching JSON Data](#fetching-json-data)
+  - [Fetching other types of data](#fetching-other-types-of-data)
+- [Mutating server state](#mutating-server-state)
+- [Setting URL Parameters](#setting-url-parameters)
+- [Setting request headers](#setting-request-headers)
+- [Interacting with the server response events](#interacting-with-the-server-response-events)
+
 ## Introduction
 
 Angular provides a client HTTP API for Angular applications, the `HTTPClient` service class in `@angular/common/http`.
@@ -197,4 +210,45 @@ createPost() {
       console.log(response.status)
     });
   }
+```
+
+## Receiving raw progress events
+
+`HttpClient` also return a stream of raw events corresponding to specific moments in the request lifecycle. Progress events are disable by default. It can be enabled with `reportProgress` option. To observe the event stream, set the `observer` option to `events`.
+
+| Type                             | Event                                                                              |
+| -------------------------------- | ---------------------------------------------------------------------------------- |
+| `HttpEventType.sent`             | The request has been dispatched to the server                                      |
+| `HttpEventType.UploadProgress`   | An `HttpUploadProgressEvent` reporting progress on uploading the request body      |
+| `HttpEventType.ResponseHeader`   | The head of the response has been received, including status and headers           |
+| `HttpEventType.DownloadProgress` | An `HttpDownloadProgressEvent` reporting progress on downloading the response body |
+| `HttpEventType.Response`         | The entire response has been received, including the response body                 |
+| `HttpResponse.User`              | A custom event from an Http interceptor.                                           |
+
+
+```typescript
+    this.http.post('/api/v1/upload',formData , {
+      observe : 'events',
+      reportProgress : true,
+    }).subscribe({
+      next: (event) => {
+        switch (event.type) {
+          case HttpEventType.UploadProgress:
+            if (event.total) {
+              console.log((event.loaded / event.total) * 100);
+            }
+            break;
+          case HttpEventType.Response:
+            console.log("Upload completed successfully:", event.body);
+            break;
+          default:
+            break;
+        }
+      },
+      error: (error) => {
+        console.error("Upload failed:", error);
+      },
+    });
+  }
+}
 ```
