@@ -14,6 +14,16 @@
 - [Setting URL Parameters](#setting-url-parameters)
 - [Setting request headers](#setting-request-headers)
 - [Interacting with the server response events](#interacting-with-the-server-response-events)
+- [Handling Request failures](#handling-request-failures)
+  - [Timeouts](#timeouts)
+- [Advanced fetch options](#advanced-fetch-options)
+  - [Keep-alive connections](#keep-alive-connections)
+  - [HTTP Caching control](#http-caching-control)
+  - [Request priority for Core Web Vitals](#request-priority-for-core-web-vitals)
+  - [Request Mode](#request-mode)
+  - [Redirect handling](#redirect-handling)
+  - [Credentials handling](#credentials-handling)
+- [HTTP Observables](#http-observables)
 
 ## Introduction
 
@@ -225,7 +235,6 @@ createPost() {
 | `HttpEventType.Response`         | The entire response has been received, including the response body                 |
 | `HttpResponse.User`              | A custom event from an Http interceptor.                                           |
 
-
 ```typescript
     this.http.post('/api/v1/upload',formData , {
       observe : 'events',
@@ -252,3 +261,229 @@ createPost() {
   }
 }
 ```
+
+## Handling Request failures
+
+There are three ways an HTTP request can fail:
+
+- A network or connection error.
+- A request didn't respond in time when the timeout option was set.
+- The backend can receive the request but fail to process it, and return an error response.
+
+`HttpClient` captures all of the above kinds of errors in an `HttpErrorResponse`. Network and timeout errors have a status code of `0`. Backend errors have the failing `status` code returned by the backend and error response the `error`.
+
+We can use the `catchError` operator to transform an error response into a value. `retry()` operator will automatically attempt to re-subscribe a specified number of times.
+
+```typescript
+this.http
+  .get("/api/v1/todos")
+  .pipe(
+    retry({
+      count: 3,
+      delay: 1000,
+    }),
+    catchError((error) => {
+      return throwError(() => error);
+    })
+  )
+  .subscribe({
+    next: (data) => {
+      console.log(data);
+    },
+    error: (error) => {
+      console.error(error);
+    },
+  });
+```
+
+### Timeouts
+
+To set a timeout for a request, we can use the `timeout` option.If the backend doesn't respond within the timeout period, the request will fail with a timeout error.
+
+> The timeout will only apply to the backend HTTP request not for the entire request handling chain.
+
+## Advanced fetch options
+
+### Keep-alive connections
+
+The `keepalive` allows a request to outlive the page or tab that made it.
+
+```typescript
+http
+  .post("/api/analytics", data, {
+    keepalive: true,
+  })
+  .subscribe();
+```
+
+### HTTP Caching control
+
+The `cache` option controls how the request interacts with the browser's HTTP cache.
+
+```typescript
+//  Use cached response regardless of freshness
+http
+  .get("/api/config", {
+    cache: "force-cache",
+  })
+  .subscribe((config) => {
+    // ...
+  });
+// Always fetch from network, bypass cache
+http
+  .get("/api/live-data", {
+    cache: "no-cache",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+// Use cached response only, fail if not in cache
+http
+  .get("/api/static-data", {
+    cache: "only-if-cached",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+```
+
+### Request priority for Core Web Vitals
+
+The `priority` option controls the request's priority.
+
+```typescript
+// High priority for critical resources
+http
+  .get("/api/user-profile", {
+    priority: "high",
+  })
+  .subscribe((profile) => {
+    // ...
+  });
+// Low priority for non-critical resources
+http
+  .get("/api/recommendations", {
+    priority: "low",
+  })
+  .subscribe((recommendations) => {
+    // ...
+  });
+// Auto priority (default) lets the browser decide
+http
+  .get("/api/settings", {
+    priority: "auto",
+  })
+  .subscribe((settings) => {
+    // ...
+  });
+```
+
+### Request Mode
+
+The `mode` option controls the request handles cross-origin requests.
+
+```typescript
+// Same-origin requests only
+http
+  .get("/api/local-data", {
+    mode: "same-origin",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+// CORS-enabled cross-origin requests
+http
+  .get("https://api.external.com/data", {
+    mode: "cors",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+// No-CORS mode for simple cross-origin requests
+http
+  .get("https://external-api.com/public-data", {
+    mode: "no-cors",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+```
+
+### Redirect handling
+
+The `redirect` option controls how the request handles redirects.
+
+```typescript
+// Follow redirects automatically (default behavior)
+http
+  .get("/api/resource", {
+    redirect: "follow",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+// Prevent automatic redirects
+http
+  .get("/api/resource", {
+    redirect: "manual",
+  })
+  .subscribe((response) => {
+    // Handle redirect manually
+  });
+// Treat redirects as errors
+http
+  .get("/api/resource", {
+    redirect: "error",
+  })
+  .subscribe({
+    next: (data) => {
+      // Success response
+    },
+    error: (err) => {
+      // Redirect responses will trigger this error handler
+    },
+  });
+```
+
+### Credentials handling
+
+The `credentials` option controls how the request handles credentials.
+
+```typescript
+// Include credentials for cross-origin requests
+http
+  .get("https://api.example.com/protected-data", {
+    credentials: "include",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+// Never send credentials (default for cross-origin)
+http
+  .get("https://api.example.com/public-data", {
+    credentials: "omit",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+// Send credentials only for same-origin requests
+http
+  .get("/api/user-data", {
+    credentials: "same-origin",
+  })
+  .subscribe((data) => {
+    // ...
+  });
+// withCredentials overrides credentials setting
+http
+  .get("https://api.example.com/data", {
+    credentials: "omit", // This will be ignored
+    withCredentials: true, // This forces credentials: 'include'
+  })
+  .subscribe((data) => {
+    // Request will include credentials despite credentials: 'omit'
+  });
+```
+## HTTP Observables
+
+Each request method on `HttpClient` returns an `Observable` of the response body. `HttpClient` produces **cold** observables. The actual request is not made until the `subscribe()` method is called. Subscribing to same `Observable` multiple times will result in multiple requests being made. Each subscription is independent.
