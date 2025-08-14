@@ -86,3 +86,57 @@ provideHttpClient(
 ```
 
 The interceptors we configure are chained together in the order.
+
+## Request and Response Metadata
+
+If we want to include information in request but not to the backend, but specifically meant for interceptors.`HttpRequest` have `context` object which stores metadata as an instance of `HttpContext`. `HttpContext` is mutable.
+
+`api.service.ts`
+
+```typescript
+ getData() {
+    return this.http.get(this.URL, {
+      context: new HttpContext().set(CACHING_ENABLED, true),
+    });
+  }
+```
+
+`constants.ts`
+
+```typescript
+export const CACHING_ENABLED = new HttpContextToken(() => true);
+```
+
+`caching.interceptor.ts`
+l
+
+```typescript
+export const cachingInterceptor: HttpInterceptorFn = (req, next) => {
+  if (req.context.get(CACHING_ENABLED)) {
+    // Add caching logic
+  }
+  return next(req);
+};
+```
+
+## Synthetic responses
+
+Most interceptors will simply invoke the `next` handler but this is not strictly a requirement.
+
+### Working with redirect information
+
+When using `useFetch` provider, responses include a `redirected` property.
+
+```typescript
+export const authRedirecInterceptor: HttpInterceptorFn = (req, next) => {
+  return next(req).pipe(
+    tap((event) => {
+      if (event.type === HttpEventType.Response) {
+        if (event.url?.includes("/login")) {
+          // Handle Auth Redirection
+        }
+      }
+    })
+  );
+};
+```
