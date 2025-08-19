@@ -44,7 +44,7 @@ this.subject.next(Math.random());
 ```
 Output
 
-Observer A (Subject) : 0.535
+Observer A (Subject)  : 0.535
 Observer B (Subject) : 0.535
 Observer A : 0.1345
 Observer B : 0.4563
@@ -82,4 +82,63 @@ Observer B:  2
 Observer A:  3
 Observer B:  3
 Observer C:  3
+```
+
+## ReplaySubject
+
+**ReplaySubject** replays old values to new subscribers when they first subscribe.The **ReplaySubject** will store every value it emits in a buffer.
+
+### Options
+
+**bufferSize** : No of items that ReplaySubject will keep in its buffer. (Default:Infinity).
+
+**windowTime** : The amount of time to keep the value in the buffer. (Default:Infinity)
+
+```ts
+const replaySubject = new ReplaySubject(3,3000);
+    replaySubject.next(1);
+    replaySubject.next(2);
+    replaySubject.next(3);
+    replaySubject.subscribe((value) => {
+      console.log('Observer A: ', value);
+    });
+    replaySubject.next(4);
+    replaySubject.subscribe((value) => {
+      console.log('Observer B: ', value);
+    });
+```
+
+```
+Output
+Observer A:  1
+Observer A:  2
+Observer A:  3
+Observer A:  4
+Observer B:  2
+Observer B:  3
+Observer B:  4
+```
+
+## AsyncSubject
+
+**AsyncSubject** only passes the last emitted value to all its subscribers once the complete method is called.
+
+```ts
+const subject = new AsyncSubject();
+    subject.subscribe((value) => console.log('Observer A: ', value));
+
+    subject.next(1);
+    subject.next(2);
+    subject.next(3);
+    subject.next(4);
+
+    subject.subscribe((value) => console.log('Observer B: ', value));
+    subject.next(5);
+    subject.complete();
+```
+
+```
+Output
+Observer A: 5
+Observer B: 5 
 ```

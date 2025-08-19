@@ -48,7 +48,8 @@ In Push systems, the Producer determines when to send data to the Consumer. The 
 
 | Promise                                                                      | Observables                                                    |
 | ---------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| It cannot handle stream of asynchronous data.It always return a single value | Handles stream of asychronous data. It returns multiple values |
+| It cannot handle stream of asynchronous data. | Handles stream of asychronous data. |
+|It always return a single value | It returns multiple values |
 | It will return a data if no code is using that data                          | It return a data if someone is going to use that data          |
 | It is native to **Javascript**                                               | It is provided by **RxJs** library                             |
 
