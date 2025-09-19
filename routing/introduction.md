@@ -143,3 +143,90 @@ export const routes: Routes = [
   }
 ]
 ```
+
+## Page Titles
+
+```typescript
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  {
+    path: 'about',
+    loadComponent: () =>
+      import('./components/about-page/about-page').then((m) => m.AboutPage),
+    title : 'About Page'
+  },
+];
+```
+
+The page title can be set dynamically using `ResolveFn`.
+
+```typescript
+import { ResolveFn, Routes } from '@angular/router';
+
+const titleResolver: ResolveFn<string> = (route) =>
+  route.paramMap.get('id') || '';
+
+export const routes: Routes = [
+  {
+    path: 'about/:id',
+    loadComponent: () =>
+      import('./components/about-page/about-page').then((m) => m.AboutPage),
+    title: titleResolver,
+  },
+];
+```
+
+## Dependency Injection
+
+## Passing data with routes
+
+### Static Data
+
+```typescript
+export const routes: Routes = [
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./components/admin-page/admin-page').then((m) => m.AdminPage),
+    data: {
+      admin: 'admin-z-123',
+    },
+  },
+];
+```
+
+```typescript
+export class AdminPage {
+  private route = inject(ActivatedRoute);
+
+  constructor() {
+    this.route.data.subscribe((data) => {
+      console.log(data); // admin-z-123
+    });
+  }
+}
+```
+
+## Nested Routes
+
+Nested routes, also known as child routes, are a common technique for managing more complex navigation routes
+
+```typescript
+{
+    path: 'product/:id',
+    component: Product,
+    title: 'Product Page',
+    children: [
+      {
+        path: 'info',
+        component: ProductInfo,
+      },
+    ],
+  },
+```
+
+```html
+<p>product works!</p>
+<router-outlet />
+```
