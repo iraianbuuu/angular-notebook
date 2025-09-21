@@ -4,6 +4,20 @@
 
 - [Introduction](#introduction)
 - [Routing](#routing)
+- [Route URL Paths](#route-url-paths)
+  - [Static URL Paths](#static-url-paths)
+  - [URL Paths with Route Parameters](#url-paths-with-route-parameters)
+  - [Wildcards](#wildcards)
+- [Angular URLs Matching](#angular-urls-matching)
+- [Redirects](#redirects)
+- [Loading Route Component Strategies](#loading-route-component-strategies)  
+  - [Eagerly Loaded](#eagerly-loaded)
+  - [Lazily Loaded](#lazily-loaded)
+- [Page Titles](#page-titles)
+- [Dependency Injection](#dependency-injection)
+- [Passing data with routes](#passing-data-with-routes)
+  - [Static Data](#static-data)
+- [Nested Routes](#nested-routes)
 
 ## Introduction
 
