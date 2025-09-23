@@ -124,3 +124,105 @@ Angular routing has two syntaxes for defining relative URLs: strings and arrays.
   <a routerLink="['settings','profile']">Profile</a>
 </li>
 ```
+
+### Programmatic Navigation
+
+We can use `Router` for handling dynamically navigate to routes , pass parameters and control navigation.
+
+## `router.navigate()`
+
+```ts
+import { Router } from "@angular/router";
+@Component({
+  selector: "app-dashboard",
+  template: ` <button (click)="navigateToProfile()">View Profile</button> `,
+})
+export class AppDashboard {
+  private router = inject(Router);
+  navigateToProfile() {
+    // Standard navigation
+    this.router.navigate(["/profile"]);
+    // With route parameters
+    this.router.navigate(["/users", userId]);
+    // With query parameters
+    this.router.navigate(["/search"], {
+      queryParams: { category: "books", sort: "price" },
+    });
+  }
+}
+```
+
+```ts
+export class AboutPage {
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  navigateToEdit() {
+    this.router.navigate(["edit"], {
+      relativeTo: this.route,
+    });
+  }
+
+  navigateToHome() {
+    this.router.navigate(["../../"], {
+      relativeTo: this.route,
+    });
+  }
+}
+```
+
+## `router.navigateByUrl()`
+
+It is a direct way to navigate using URL path strings rather than array segments.
+
+```ts
+// Standard route navigation
+router.navigateByUrl('/products);
+// Navigate to nested route
+router.navigateByUrl('/products/featured');
+// Complete URL with parameters and fragment
+router.navigateByUrl('/products/123?view=details#reviews');
+// Navigate with query parameters
+router.navigateByUrl('/search?category=books&sortBy=price');
+```
+
+## Read Route State
+
+`ActivatedRoute` is a service from `@angular/router` that provides all the information associated with the current route.
+
+| Property      | Details                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------- |
+| `url`         | It is represented as an array of strings for each part of the route path.                                     |
+| `data`        | It contains the data object provided for the route. Also contains any resolved values from the resolve guard. |
+| `params`      | It contains the required and optional parameters specific to the route.                                       |
+| `queryParams` | It contains the query parameters available to all routes.                                                     |
+
+> All the above properties are `Observable`
+
+## Reading params on a route
+
+There are two types of parameters that developers can utilize from a route:
+
+1. Route  
+2. Query
+
+### Route Params
+
+```ts
+import { Component, inject, signal } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+@Component({
+  selector: "app-product-detail",
+  template: `<h1>Product Details: {{ productId() }}</h1>`,
+})
+export class ProductDetailComponent {
+  productId = signal("");
+  private activatedRoute = inject(ActivatedRoute);
+  constructor() {
+    // Access route parameters
+    this.activatedRoute.params.subscribe((params) => {
+      this.productId.set(params["id"]);
+    });
+  }
+}
+```
